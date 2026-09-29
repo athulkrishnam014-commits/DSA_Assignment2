@@ -1,0 +1,91 @@
+==============================================================
+ Q4 : Expression Tree vs Stack-based Postfix Evaluation
+==============================================================
+Postfix expression : 8 3 2 * + 6 2 / -
+Number of tokens   : 9
+
+--- TRACE A: Expression tree construction ---
+Step  Token  Action                                   Stack (as sub-expressions)
+--------------------------------------------------------------------------------------------
+1     8      operand: create leaf, push               {8} 
+2     3      operand: create leaf, push               {8} {3} 
+3     2      operand: create leaf, push               {8} {3} {2} 
+4     *      operator: pop 2, make node, push         {8} {(3*2)} 
+5     +      operator: pop 2, make node, push         {(8+(3*2))} 
+6     6      operand: create leaf, push               {(8+(3*2))} {6} 
+7     2      operand: create leaf, push               {(8+(3*2))} {6} {2} 
+8     /      operator: pop 2, make node, push         {(8+(3*2))} {(6/2)} 
+9     -      operator: pop 2, make node, push         {((8+(3*2))-(6/2))} 
+
+--- Expression Tree (rotated 90 degrees: root at left, right subtree on top) ---
+
+            [2]
+      [/]
+            [6]
+[-]
+                  [2]
+            [*]
+                  [3]
+      [+]
+            [8]
+
+--- Traversal results ---
+Inorder   (L N R) : 8 + 3 * 2 - 6 / 2 
+Inorder with ( ) : ((8+(3*2))-(6/2))
+Preorder  (N L R) : - + 8 * 3 2 / 6 2 
+Postorder (L R N) : 8 3 2 * + 6 2 / -    <-- same as the given postfix
+Level-order       : - + / 8 * 6 2 3 2 
+
+--- Tree properties ---
+Total nodes : 9
+Height      : 3 edges (4 levels)
+
+--- TRACE B1: Stack-based postfix evaluation ---
+Step  Token  Action                             Stack (bottom -> top)
+------------------------------------------------------------------------------
+1     8      push 8                             [ 8 ]
+2     3      push 3                             [ 8 3 ]
+3     2      push 2                             [ 8 3 2 ]
+4     *      pop 2,3 -> 3 * 2 = 6               [ 8 6 ]
+5     +      pop 6,8 -> 8 + 6 = 14              [ 14 ]
+6     6      push 6                             [ 14 6 ]
+7     2      push 2                             [ 14 6 2 ]
+8     /      pop 2,6 -> 6 / 2 = 3               [ 14 3 ]
+9     -      pop 3,14 -> 14 - 3 = 11            [ 11 ]
+
+Result (stack evaluation) = 11
+
+--- TRACE B2: Expression tree evaluation (post-order) ---
+Step  Node   Type     Action
+----------------------------------------------
+1     8      leaf     return value
+2     3      leaf     return value
+3     2      leaf     return value
+4     *      operator 3 * 2 = 6
+5     +      operator 8 + 6 = 14
+6     6      leaf     return value
+7     2      leaf     return value
+8     /      operator 6 / 2 = 3
+9     -      operator 14 - 3 = 11
+
+Result (tree evaluation)  = 11
+
+--- Operation counts ---
+Measure                                        Value
+----------------------------------------------------------
+Stack eval  : pushes                           9
+Stack eval  : pops                             9
+Stack eval  : arithmetic operations            4
+Stack eval  : TOTAL major operations           22
+Stack eval  : peak stack depth                 3
+Tree build  : pushes                           9
+Tree build  : pops                             9
+Tree build  : nodes created (malloc)           9
+Tree build  : TOTAL stack ops (one-time)       18
+Tree eval   : node visits (recursive calls)    9
+Tree eval   : arithmetic operations            4
+Tree eval   : TOTAL major operations           13
+Tree eval   : max recursion depth (levels)     4
+Tree eval   : TOTAL incl. build (stack ops)    31
+
+Both methods give the same answer : YES
